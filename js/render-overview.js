@@ -3,7 +3,7 @@ import { safeSet } from './data.js';
 import { closeModal, tagCardHTML } from './item-card.js';
 import { stopXuatScan, toggleXuatCamera } from './scanner.js';
 import { S } from './state.js';
-import { fmtTime, lineName, statusOf, toast, totalQty, uid, userName, whName } from './utils.js';
+import { escapeHtml, fmtTime, lineName, statusOf, toast, totalQty, uid, userName, whName } from './utils.js';
 
 export function renderOverview(c){
   const items=S.items;
@@ -85,6 +85,7 @@ export function openXuatModal(item){
 
   let html = `<h3>Xuất kho</h3>
     <div class="muted" style="font-size:12.5px;margin-bottom:10px;">${item.code} — ${item.name}</div>
+    ${item.detail?`<div class="item-detail-text" style="margin-bottom:10px;padding-top:0;border-top:none;">${escapeHtml(item.detail)}</div>`:''}
     <div class="xuat-status ${statusClass}">
       <div class="big-badge">${bigLabel}</div>
       <div class="sub">Tổng tồn hiện tại: <b>${total} ${item.unit}</b> · Mức tối thiểu: ${item.min} ${item.unit}</div>

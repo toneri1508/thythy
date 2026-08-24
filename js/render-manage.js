@@ -94,7 +94,8 @@ export function drawLineList(){
 export function drawItemList(){
   document.getElementById('itemList').innerHTML = S.items.map(i=>`
     <li>
-      <span class="t-item" style="font-family:var(--mono);font-size:12px;min-width:90px;">${i.code}</span>
+      <input class="t-item" data-id="${i.id}" data-kind="itemcode" value="${escapeHtml(i.code)}"
+        style="font-family:var(--mono);font-size:12px;min-width:90px;max-width:120px;text-transform:uppercase;"/>
       <span style="flex:1;font-size:13px;">${escapeHtml(i.name)}</span>
       <button class="btn btn-sm btn-danger" data-del="item" data-id="${i.id}">Xoá</button>
     </li>`).join('');
@@ -172,6 +173,15 @@ export function bindMlist(containerId){
       if(kind==='line'){ const l=S.meta.lines.find(x=>x.id===id); l.name=inp.value.trim()||l.name; await safeSet('sp_meta',S.meta); }
       if(kind==='itemname'){ const it=S.items.find(x=>x.id===id); it.name=inp.value.trim()||it.name; await safeSet('sp_items',S.items); }
       if(kind==='itemmin'){ const it=S.items.find(x=>x.id===id); it.min=parseInt(inp.value)||0; await safeSet('sp_items',S.items); }
+      if(kind==='itemcode'){
+        const it=S.items.find(x=>x.id===id);
+        const newCode=inp.value.trim().toUpperCase();
+        if(!newCode){ toast('Mã không được để trống'); inp.value=it.code; return; }
+        if(S.items.some(x=>x.id!==id && x.code.toLowerCase()===newCode.toLowerCase())){
+          toast('Mã "'+newCode+'" đã tồn tại ở vật tư khác'); inp.value=it.code; return;
+        }
+        it.code=newCode; inp.value=newCode; await safeSet('sp_items',S.items);
+      }
       toast('Đã lưu thay đổi');
     });
   });
