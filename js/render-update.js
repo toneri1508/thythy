@@ -134,6 +134,7 @@ export function openNewItemInline(code){
       <div class="field"><label class="field-label">Đơn vị</label><input id="niUnit" placeholder="cái / bộ / sợi"/></div>
       <div class="field"><label class="field-label">Tồn tối thiểu</label><input id="niMin" type="number" value="5"/></div>
     </div>
+    <div class="field"><label class="field-label">Detail (không bắt buộc)</label><input id="niDetail" placeholder="Ghi chú thêm về vật tư…"/></div>
     <button class="btn btn-primary btn-block" id="niSave">Lưu vật tư mới</button>
   </div>`;
   document.getElementById('niSave').addEventListener('click',async ()=>{
@@ -143,7 +144,8 @@ export function openNewItemInline(code){
     if(S.items.some(i=>i.code.toLowerCase()===nCode.toLowerCase())){toast('Mã đã tồn tại'); return;}
     const item={id:uid('it'),code:nCode,name:nName,group:document.getElementById('niGroup').value.trim()||'Khác',
       unit:document.getElementById('niUnit').value.trim()||'cái',
-      min:parseInt(document.getElementById('niMin').value)||0, stocks:{}};
+      min:parseInt(document.getElementById('niMin').value)||0,
+      detail:document.getElementById('niDetail').value.trim()||'', stocks:{}};
     S.items.push(item); await safeSet('sp_items',S.items);
     toast('Đã tạo vật tư mới: '+nCode);
     applyScanCode(nCode);
@@ -217,10 +219,11 @@ export async function downloadTemplate(){
     {header:'Số lượng nhập', key:'qty', width:14},
     {header:'Người nhập', key:'user', width:16},
     {header:'Ghi chú', key:'note', width:24},
+    {header:'Detail', key:'detail', width:28},
   ];
   ws1.getRow(1).font = {bold:true};
-  ws1.addRow({code:'SP-BM-050', name:'Bo mạch cảm biến ánh sáng', group:'Bo mạch', unit:'cái', min:10, wh:exWh1, qty:25, user:exUser, note:'Nhập hàng về đợt mới'});
-  ws1.addRow({code:'SP-CK-060', name:'Ốc vít M4x10', group:'Cơ khí', unit:'gói', min:20, wh:exWh2, qty:100, user:'', note:''});
+  ws1.addRow({code:'SP-BM-050', name:'Bo mạch cảm biến ánh sáng', group:'Bo mạch', unit:'cái', min:10, wh:exWh1, qty:25, user:exUser, note:'Nhập hàng về đợt mới', detail:'Cảm biến quang loại NPN, 12-24VDC'});
+  ws1.addRow({code:'SP-CK-060', name:'Ốc vít M4x10', group:'Cơ khí', unit:'gói', min:20, wh:exWh2, qty:100, user:'', note:'', detail:''});
 
   const LAST_ROW = 500;
   if(whNames.length){
@@ -252,6 +255,7 @@ export async function downloadTemplate(){
     '- Số lượng nhập: để trống nếu chỉ muốn tạo/sửa thông tin vật tư mà chưa nhập kho.',
     '- Người nhập: bấm vào ô để chọn tên trong danh sách sổ xuống — đảm bảo hệ thống ghi nhận đúng người.',
     '- Có thể xoá 2 dòng ví dụ trước khi điền dữ liệu thật.',
+    '- Detail: ghi chú/mô tả chi tiết thêm về vật tư (không bắt buộc), ví dụ thông số kỹ thuật.',
     '- Danh sách kho/người dùng trong ô sổ xuống được lấy đúng theo dữ liệu hiện tại của hệ thống tại thời điểm tải file này.'
   ].forEach(line=>ws2.addRow([line]));
 
@@ -265,7 +269,7 @@ export async function downloadTemplate(){
 }
 
 export function mapImportRow(raw){
-  const out={code:'',name:'',group:'',unit:'',min:'',wh:'',qty:'',user:'',note:''};
+  const out={code:'',name:'',group:'',unit:'',min:'',wh:'',qty:'',user:'',note:'',detail:''};
   Object.keys(raw).forEach(h=>{
     const H=h.toLowerCase(); const v=raw[h];
     if(H.includes('mã')) out.code=String(v).trim().toUpperCase();
@@ -276,6 +280,7 @@ export function mapImportRow(raw){
     else if(H.includes('kho')) out.wh=String(v).trim();
     else if(H.includes('số lượng')) out.qty=v;
     else if(H.includes('người')) out.user=String(v).trim();
+    else if(H.includes('detail')) out.detail=String(v).trim();
     else if(H.includes('ghi chú')) out.note=String(v).trim();
   });
   return out;
@@ -355,13 +360,15 @@ export async function commitImport(){
     let item = S.items.find(i=>i.code.toLowerCase()===row.code.toLowerCase());
     if(!item){
       item = {id:uid('it'), code:row.code, name:row.name||row.code, group:row.group||'Khác',
-        unit:row.unit||'cái', min:(row.min!==''&&!isNaN(row.min))?parseInt(row.min):0, stocks:{}};
+        unit:row.unit||'cái', min:(row.min!==''&&!isNaN(row.min))?parseInt(row.min):0,
+        detail:row.detail||'', stocks:{}};
       S.items.push(item); newItems++;
     } else {
       if(row.name) item.name=row.name;
       if(row.group) item.group=row.group;
       if(row.unit) item.unit=row.unit;
       if(row.min!=='' && !isNaN(row.min)) item.min=parseInt(row.min);
+      if(row.detail) item.detail=row.detail;
       updatedItems++;
     }
     const hasQty = row.qty!=='' && !isNaN(row.qty) && Number(row.qty)>0;

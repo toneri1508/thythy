@@ -22,7 +22,7 @@ export function renderInventory(c){
     const stF=document.getElementById('invStatus').value;
     let list=S.items.filter(i=>{
       if(q && !(i.code.toLowerCase().includes(q)||i.name.toLowerCase().includes(q))) return false;
-      if(wh && !(i.stocks && i.stocks[wh]!==undefined)) return false;
+      if(wh && !((i.stocks && i.stocks[wh]) > 0)) return false;
       if(grp && i.group!==grp) return false;
       if(stF && statusOf(i)!==stF) return false;
       return true;

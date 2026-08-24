@@ -114,6 +114,7 @@ export function openItemEditModal(itemId){
       <div class="field"><label class="field-label">Đơn vị</label><input id="eiUnit" value="${escapeHtml(item.unit||'')}"/></div>
       <div class="field"><label class="field-label">Tồn tối thiểu</label><input id="eiMin" type="number" min="0" value="${item.min}"/></div>
     </div>
+    <div class="field"><label class="field-label">Detail (không bắt buộc)</label><input id="eiDetail" value="${escapeHtml(item.detail||'')}" placeholder="Ghi chú thêm về vật tư…"/></div>
     <label class="field-label" style="display:block;margin:10px 0 6px;">Số lượng tồn theo từng kho</label>
     ${S.meta.warehouses.map(w=>`
       <div class="field"><label class="field-label">${w.name}</label>
@@ -131,6 +132,7 @@ export function openItemEditModal(itemId){
     item.group=document.getElementById('eiGroup').value.trim()||'Khác';
     item.unit=document.getElementById('eiUnit').value.trim()||'cái';
     item.min=Math.max(0,parseInt(document.getElementById('eiMin').value)||0);
+    item.detail=document.getElementById('eiDetail').value.trim()||'';
 
     const stockChanges=[];
     document.querySelectorAll('#modalContent [data-wh]').forEach(inp=>{

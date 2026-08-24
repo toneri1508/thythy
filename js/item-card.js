@@ -6,8 +6,9 @@ import { escapeHtml, fmtTime, itemTxHistory, lastTx, lineName, statusLabel, stat
 export function tagCardHTML(item, editable){
   const st=statusOf(item), t=totalQty(item);
   const badge = st==='green'?'badge-green':st==='amber'?'badge-amber':'badge-red';
-  const whRows = Object.entries(item.stocks||{}).filter(([,q])=>q>0 || true)
-    .map(([wid,q])=>`<div><span>${whName(wid)}</span><b>${q}</b></div>`).join('') || '<div><span>—</span><b>0</b></div>';
+  const nonZero = Object.entries(item.stocks||{}).filter(([,q])=>q>0);
+  const whRows = nonZero.map(([wid,q])=>`<div><span>${whName(wid)}</span><b>${q}</b></div>`).join('')
+    || '<div><span>Không có tồn ở kho nào</span></div>';
   return `<div class="tag st-${st}">
     ${editable?`<button class="edit-btn" data-action="editItem" data-id="${item.id}" title="Sửa vật tư">✏️</button><button class="qr-btn" data-action="qr" data-id="${item.id}" title="Xem QR">▦</button>`:''}
     <div class="punch"></div>
@@ -17,7 +18,11 @@ export function tagCardHTML(item, editable){
     <div class="tear"></div>
     <div class="qty-row"><span class="qty">${t}</span><span class="qty-unit">${item.unit}</span></div>
     <span class="badge ${badge}" style="margin-top:6px;">${statusLabel(st)}</span>
-    <div class="wh-list">${whRows}</div>
+    <details class="wh-details">
+      <summary>Xem theo kho${nonZero.length?' ('+nonZero.length+')':''}</summary>
+      <div class="wh-list">${whRows}</div>
+      ${item.detail?`<div class="item-detail-text">${escapeHtml(item.detail)}</div>`:''}
+    </details>
     ${lastActRowHTML(item)}
   </div>`;
 }
